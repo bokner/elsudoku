@@ -1,5 +1,4 @@
 defmodule ElSudoku do
-
   alias InPlace.Examples.Sudoku, as: DLXSudoku
   @numbers ?1..?9
 
@@ -7,10 +6,51 @@ defmodule ElSudoku do
     if valid_instance?(instance) do
       solver.(instance)
       |> tap(fn solutions ->
-        Enum.each(solutions, &check_solution/1) end)
+        Enum.each(solutions, &check_solution/1)
+      end)
     else
       throw({:invalid_instance, instance})
     end
+  end
+
+  def benchmarks(puzzles, solver) do
+    alias InPlace.Examples.Sudoku, as: InPlaceSudoku
+    # "data/sudoku/clue17"
+    # "data/sudoku/top95"
+    puzzle_file =
+      "data/sudoku/hardest"
+
+    # "data/sudoku/puzzles5_forum_hardest_1905_11+"
+    # "data/sudoku/quasi_uniform_834"
+    num_instances = 100_000
+
+    puzzles =
+      File.read!(Path.join("/Users/bokner/projects/fixpoint", puzzle_file))
+      |> String.split("\n")
+      |> Enum.map(fn str -> String.slice(str, 0..80) end)
+      |> Enum.take(num_instances)
+
+    res =
+      Enum.map(Enum.with_index(puzzles, 1), fn {p, idx} ->
+        {tc, _} =
+          :timer.tc(fn ->
+            {:solved, _, _board} = Sudoku.solve(p)
+          end)
+          |> tap(fn {tc, _idx} -> IO.puts("#{idx} : #{round(tc / 1000)} ms") end)
+
+        {tc, idx}
+      end)
+
+    times = Enum.map(res, fn {time, _idx} -> time end) |> Enum.sort()
+
+    stats = %{
+      shortest: Enum.min(times),
+      longest: Enum.max(times),
+      average: Enum.sum(times) / length(times),
+      total: Enum.sum(times),
+      sorted: Enum.sort(times),
+      median: Enum.at(times, div(length(times), 2))
+    }
   end
 
   def valid_instance?(instance) do
@@ -34,6 +74,7 @@ defmodule ElSudoku do
     fn puzzle ->
       handler = fn s -> send(self(), s) end
       InPlace.Examples.Sudoku.solve(puzzle, solution_handler: handler)
+
       receive do
         msg -> [Enum.join(msg, "")]
       end
