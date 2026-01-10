@@ -1,0 +1,5 @@
+%{
+  "elixir_sudoku": {:git, "https://github.com/ewildgoose/elixir-sudoku.git", "faa70c77f25c2f816a924f75cdf154d30873412e", []},
+  "inplace": {:hex, :inplace, "0.4.0", "76b9a497d55acd95ec8b1a860aab9776a81e8d2f484ca57f139ff4b093a93b0c", [:mix], [], "hexpm", "6319c69432224030cb7ebee8efbcf66a597f31cd64b944057c727a1215208ea3"},
+  "sudoku": {:git, "https://github.com/ewildgoose/elixir-sudoku.git", "faa70c77f25c2f816a924f75cdf154d30873412e", []},
+}
