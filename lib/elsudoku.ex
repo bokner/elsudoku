@@ -2,6 +2,16 @@ defmodule ElSudoku do
   alias InPlace.Examples.Sudoku, as: DLXSudoku
   @numbers ?1..?9
 
+  def puzzle_sets() do
+    %{
+      clue17: "clue17",
+      top95: "top95",
+      hardest: "hardest",
+      quasi_uniform: "quasi_uniform_834",
+      puzzles5_forum_hardest: "puzzles5_forum_hardest_1905_11+",
+      misc: "misc"
+    }
+  end
   def solve(instance, solver) when is_binary(instance) and is_function(solver, 1) do
     if valid_instance?(instance) do
       solver.(instance)
@@ -13,22 +23,14 @@ defmodule ElSudoku do
     end
   end
 
-  def benchmarks(puzzles, solver) do
-    alias InPlace.Examples.Sudoku, as: InPlaceSudoku
-    # "data/sudoku/clue17"
-    # "data/sudoku/top95"
-    puzzle_file =
-      "data/sudoku/hardest"
-
-    # "data/sudoku/puzzles5_forum_hardest_1905_11+"
-    # "data/sudoku/quasi_uniform_834"
-    num_instances = 100_000
+  def benchmark(puzzle_file, solver, opts \\ []) when is_binary(puzzle_file) do
+    num_instances = Keyword.get(opts, :num_instances)
 
     puzzles =
       File.read!(Path.join("/Users/bokner/projects/fixpoint", puzzle_file))
       |> String.split("\n")
       |> Enum.map(fn str -> String.slice(str, 0..80) end)
-      |> Enum.take(num_instances)
+      |> then(fn list -> num_instances && Enum.take(list, num_instances) || list end)
 
     res =
       Enum.map(Enum.with_index(puzzles, 1), fn {p, idx} ->
